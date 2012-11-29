@@ -37,10 +37,10 @@ func (lp latentPipe) Send(p *Packet) {
 
 func (lp latentPipe) Recv() *Packet {
 	pkt, ok := <-lp.outputChan
-    if !ok {
-        return nil
-    }
-    return pkt
+	if !ok {
+		return nil
+	}
+	return pkt
 }
 
 func (lp latentPipe) Close() {
@@ -66,17 +66,17 @@ func NewLatentPipe(latency time.Duration) Pipe {
 		arrived := list.New()
 		var arrived_head *Packet = nil
 
-        // Holds either lp.outputChan or nil
-        // if outputChan is nil then it will never be selected
-        // Should be set if arrived_head is set and nil if arrived_head is nil
-        var outputChan chan *Packet = nil
+		// Holds either lp.outputChan or nil
+		// if outputChan is nil then it will never be selected
+		// Should be set if arrived_head is set and nil if arrived_head is nil
+		var outputChan chan *Packet = nil
 
 		for {
 			// If we've been shutdown and the arrived queue is empty then we can
 			// close the outputChan and exit
-			if shutdown && 
-                arrived_head == nil && arrived.Len() == 0 &&
-                intransit_head == nil && intransit.Len() == 0 {
+			if shutdown &&
+				arrived_head == nil && arrived.Len() == 0 &&
+				intransit_head == nil && intransit.Len() == 0 {
 				close(lp.outputChan)
 				return
 			}
@@ -102,12 +102,12 @@ func NewLatentPipe(latency time.Duration) Pipe {
 			// The head packet is ready to deliver
 			case <-timer:
 				// Push this packet onto the arrived list
-                if arrived.Len() == 0 {
-                    arrived_head = intransit_head.packet
-                    outputChan = lp.outputChan
-                } else {
-                    arrived.PushBack(intransit_head.packet)
-                }
+				if arrived.Len() == 0 {
+					arrived_head = intransit_head.packet
+					outputChan = lp.outputChan
+				} else {
+					arrived.PushBack(intransit_head.packet)
+				}
 
 				// Since we no longer have any packets in transit disable the
 				// timer
@@ -124,12 +124,12 @@ func NewLatentPipe(latency time.Duration) Pipe {
 			case outputChan <- arrived_head:
 				if 0 == arrived.Len() {
 					arrived_head = nil
-                    outputChan = nil
+					outputChan = nil
 				} else {
 					elm := arrived.Front()
 					arrived.Remove(elm)
 					arrived_head = elm.Value.(*Packet)
-                    outputChan = lp.outputChan
+					outputChan = lp.outputChan
 				}
 
 			}

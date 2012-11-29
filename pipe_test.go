@@ -27,7 +27,7 @@ func (t timer) elapsedSeconds() Seconds {
 
 func TestLatentPipeDelaysPacketsIfGivenDelay(t *testing.T) {
 	pkt := Packet{}
-	pipe := NewLatentPipe(time.Millisecond*1000)
+	pipe := NewLatentPipe(time.Millisecond * 1000)
 	timer := startTimer()
 	pipe.Send(&pkt)
 	rcvd := pipe.Recv()
@@ -42,7 +42,7 @@ func TestLatentPipeDelaysPacketsIfGivenDelay(t *testing.T) {
 
 func TestLatentPipeWontDelayIfNoDelayGiven(t *testing.T) {
 	pkt := Packet{}
-	pipe := NewLatentPipe(time.Millisecond*0)
+	pipe := NewLatentPipe(time.Millisecond * 0)
 	timer := startTimer()
 	pipe.Send(&pkt)
 	rcvd := pipe.Recv()
@@ -56,7 +56,7 @@ func TestLatentPipeWontDelayIfNoDelayGiven(t *testing.T) {
 
 func TestClosingAfterSendingStillResultsInDeliveredPacket(t *testing.T) {
 	pkt := Packet{}
-	pipe := NewLatentPipe(time.Millisecond*0)
+	pipe := NewLatentPipe(time.Millisecond * 0)
 	pipe.Send(&pkt)
 	pipe.Close()
 	rcvd := pipe.Recv()
@@ -66,7 +66,7 @@ func TestClosingAfterSendingStillResultsInDeliveredPacket(t *testing.T) {
 }
 
 func TestClosingWithoutResultsInNilPacket(t *testing.T) {
-	pipe := NewLatentPipe(time.Millisecond*0)
+	pipe := NewLatentPipe(time.Millisecond * 0)
 	pipe.Close()
 	rcvd := pipe.Recv()
 	if rcvd != nil {

@@ -19,16 +19,16 @@ func (t timer) elapsedMilliseconds() time.Duration {
 }
 
 func fuzzyEquals(a, b, delta time.Duration) bool {
-    diff := a-b
-    if diff < 0 {
-        diff *= -1
-    }
-    return diff < delta
+	diff := a - b
+	if diff < 0 {
+		diff *= -1
+	}
+	return diff < delta
 }
 
 func TestLatentPipeDelaysPacketsIfGivenDelay(t *testing.T) {
 
-    const delay = 100
+	const delay = 100
 	pkt := Packet{}
 	pipe := NewLatentPipe(time.Millisecond * delay)
 	timer := startTimer()

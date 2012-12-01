@@ -14,26 +14,29 @@ func startTimer() timer {
 	return timer(time.Now())
 }
 
-type Seconds int64
+func (t timer) elapsedMilliseconds() time.Duration {
+	return time.Now().Sub(time.Time(t)) * time.Millisecond
+}
 
-func (t timer) elapsedSeconds() Seconds {
-	milliseconds := time.Now().Sub(time.Time(t)) / time.Millisecond
-
-	// Round to the nearest second
-	seconds := ((milliseconds + 500) / 1000)
-
-	return Seconds(seconds)
+func fuzzyEquals(a, b, delta time.Duration) bool {
+    diff := a-b
+    if diff < 0 {
+        diff *= -1
+    }
+    return diff < delta
 }
 
 func TestLatentPipeDelaysPacketsIfGivenDelay(t *testing.T) {
+
+    const delay = 100
 	pkt := Packet{}
-	pipe := NewLatentPipe(time.Millisecond * 1000)
+	pipe := NewLatentPipe(time.Millisecond * delay)
 	timer := startTimer()
 	pipe.Send(&pkt)
 	rcvd := pipe.Recv()
-	if 1 != timer.elapsedSeconds() {
-		t.Fatalf("Latent pipe didn't express expected latency. Took %v seconds expected %v seconds",
-			timer.elapsedSeconds(), 1)
+	if fuzzyEquals(delay, timer.elapsedMilliseconds(), 10) {
+		t.Fatalf("Latent pipe didn't express expected latency. Took %v milliseconds expected %v milliseconds",
+			timer.elapsedMilliseconds(), delay)
 	}
 	if &pkt != rcvd {
 		t.Fatalf("Didn't get expected packet from latent pipe. Got %v expected %v", rcvd, pkt)
@@ -46,8 +49,8 @@ func TestLatentPipeWontDelayIfNoDelayGiven(t *testing.T) {
 	timer := startTimer()
 	pipe.Send(&pkt)
 	rcvd := pipe.Recv()
-	if 0 != timer.elapsedSeconds() {
-		t.Fatalf("Latent pipe expressed latency. Took %v seconds expected %v seconds", timer.elapsedSeconds(), 0)
+	if fuzzyEquals(0, timer.elapsedMilliseconds(), 10) {
+		t.Fatalf("Latent pipe expressed latency. Took %v milliseconds expected %v milliseconds", timer.elapsedMilliseconds(), 0)
 	}
 	if &pkt != rcvd {
 		t.Fatalf("Didn't get expected packet from latent pipe. Got %v expected %v", rcvd, pkt)

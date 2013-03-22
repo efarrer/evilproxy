@@ -1,10 +1,18 @@
 package evil_proxy
 
+type Sender interface {
+	Send(*Packet)
+}
+
+type Receiver interface {
+	Recv() *Packet
+}
+
 /*
  * A pipe is a unidirectional communication channel
  */
 type Pipe interface {
-	Send(*Packet)
-	Recv() *Packet
+	Sender
+	Receiver
 	Close()
 }

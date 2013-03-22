@@ -10,7 +10,7 @@ func init() {
 }
 
 type clientSocket struct {
-	pipe Pipe
+	send Sender
 }
 
 func (s *clientSocket) Send(data []byte) {
@@ -29,10 +29,10 @@ func (s *clientSocket) Close() {
 /*
  * Constructs a new client for communicating over a pipe
  */
-func NewClient(pipe Pipe) Socket {
+func NewClient(send Sender) Socket {
 	// Construct initial syn packet
 	syn := Packet{Syn, rand.Int63(), 0, 0, []byte{}}
-	pipe.Send(&syn)
+	send.Send(&syn)
 
-	return &clientSocket{pipe}
+	return &clientSocket{send}
 }

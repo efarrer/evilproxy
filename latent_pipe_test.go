@@ -68,6 +68,18 @@ func TestClosingAfterSendingStillResultsInDeliveredPacket(t *testing.T) {
 	}
 }
 
+func TestSendingAfterCloseResultsInError(t *testing.T) {
+    defer func() {
+        recover()
+    }()
+	pkt := Packet{}
+	pipe := NewLatentPipe(time.Millisecond * 0)
+	pipe.Close()
+	pipe.Send(&pkt)
+    t.Fatalf("Expecting a panic for sending over closed pipe\n")
+}
+
+
 func TestClosingWithoutResultsInNilPacket(t *testing.T) {
 	pipe := NewLatentPipe(time.Millisecond * 0)
 	pipe.Close()

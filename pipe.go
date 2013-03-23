@@ -1,7 +1,12 @@
 package evil_proxy
 
 type Sender interface {
+    // Send the packet
+    // Panics if the sender is closed
 	Send(*Packet)
+
+    // Closes the Sender
+	Close()
 }
 
 type Receiver interface {
@@ -14,5 +19,4 @@ type Receiver interface {
 type Pipe interface {
 	Sender
 	Receiver
-	Close()
 }

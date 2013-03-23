@@ -2,6 +2,7 @@ package evil_proxy
 
 import (
 	"container/list"
+	"errors"
 	"time"
 )
 
@@ -32,12 +33,12 @@ func (lp latentPipe) Send(p *Packet) {
 /*
  * Receive a packet from the latent pipe
  */
-func (lp latentPipe) Recv() *Packet {
+func (lp latentPipe) Recv() (*Packet, error) {
 	pkt, ok := <-lp.outputChan
 	if !ok {
-		return nil
+		return nil, errors.New("Receiver is closed.")
 	}
-	return pkt
+	return pkt, nil
 }
 
 /*

@@ -7,7 +7,10 @@ import (
 func TestNewClientSendsSynPacket(t *testing.T) {
 	pipe := NewLatentPipe(0)
 	NewClient(pipe)
-	pkt := pipe.Recv()
+	pkt, err := pipe.Recv()
+	if err != nil {
+		t.Fatalf("Pipe shouldn't be closed")
+	}
 	if (pkt.Flags & Syn) != Syn {
 		t.Fatalf("Client didn't send a syn packet")
 	}

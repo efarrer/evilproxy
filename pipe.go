@@ -1,7 +1,7 @@
 package evil_proxy
 
 type Sender interface {
-	// Send the packet
+	// Queue the packet for sending
 	// Panics if the sender is closed
 	Send(*Packet)
 
@@ -10,6 +10,8 @@ type Sender interface {
 }
 
 type Receiver interface {
+	// Receives a packet
+	// Waits for a packet if one is not immediately available
 	Recv() (*Packet, error)
 }
 

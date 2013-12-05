@@ -26,8 +26,7 @@ func fuzzyEquals(a, b, delta time.Duration) bool {
 	return diff < delta
 }
 
-func TestLatentPipeDelaysPacketsIfGivenDelay(t *testing.T) {
-
+func TestLatentPipeDelaysPackets(t *testing.T) {
 	const delay = 100
 	pkt := Packet{}
 	pipe := NewLatentPipe(time.Millisecond * delay)
@@ -46,7 +45,7 @@ func TestLatentPipeDelaysPacketsIfGivenDelay(t *testing.T) {
 	}
 }
 
-func TestLatentPipeWontDelayIfNoDelayGiven(t *testing.T) {
+func TestLatentPipeWontDelayIfNoDelay(t *testing.T) {
 	pkt := Packet{}
 	pipe := NewLatentPipe(time.Millisecond * 0)
 	timer := startTimer()
@@ -63,7 +62,7 @@ func TestLatentPipeWontDelayIfNoDelayGiven(t *testing.T) {
 	}
 }
 
-func TestClosingAfterSendingStillResultsInDeliveredPacket(t *testing.T) {
+func TestClosingAfterSendingStillDeliversPacket(t *testing.T) {
 	pkt := Packet{}
 	pipe := NewLatentPipe(time.Millisecond * 0)
 	pipe.Send(&pkt)
@@ -88,7 +87,29 @@ func TestSendingAfterCloseResultsInError(t *testing.T) {
 	t.Fatalf("Expecting a panic for sending over closed pipe\n")
 }
 
-func TestClosingWithoutResultsInNilPacket(t *testing.T) {
+func TestRecvHangsIfNoPacket(t *testing.T) {
+	const delay = 100
+	pkt := Packet{}
+	pipe := NewLatentPipe(time.Millisecond * 0)
+	go func() {
+		<-time.After(time.Millisecond * delay)
+		pipe.Send(&pkt)
+	}()
+	timer := startTimer()
+	rcvd, err := pipe.Recv()
+	if err != nil {
+		t.Fatalf("Got an unexpected error while receiving from pipe\n")
+	}
+	if fuzzyEquals(delay, timer.elapsedMilliseconds(), 10) {
+		t.Fatalf("Recv didn't block %v milliseconds expected %v milliseconds",
+			timer.elapsedMilliseconds(), delay)
+	}
+	if rcvd != &pkt {
+		t.Fatalf("Didn't get expected packet from latent pipe. Got %v expected %v", rcvd, pkt)
+	}
+}
+
+func TestRecvFromClosedPipeResultsInNilPacket(t *testing.T) {
 	pipe := NewLatentPipe(time.Millisecond * 0)
 	pipe.Close()
 	rcvd, err := pipe.Recv()

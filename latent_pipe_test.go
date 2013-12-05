@@ -5,40 +5,19 @@ import (
 	"time"
 )
 
-/*
- * A simple timer for seeing how long an operation lasts
- */
-type timer time.Time
-
-func startTimer() timer {
-	return timer(time.Now())
-}
-
-func (t timer) elapsedMilliseconds() time.Duration {
-	return time.Now().Sub(time.Time(t)) * time.Millisecond
-}
-
-func fuzzyEquals(a, b, delta time.Duration) bool {
-	diff := a - b
-	if diff < 0 {
-		diff *= -1
-	}
-	return diff < delta
-}
-
 func TestLatentPipeDelaysPackets(t *testing.T) {
 	const delay = 100
 	pkt := Packet{}
 	pipe := NewLatentPipe(time.Millisecond * delay)
-	timer := startTimer()
+	timer := StartTimer()
 	pipe.Send(&pkt)
 	rcvd, err := pipe.Recv()
 	if err != nil {
 		t.Fatalf("Got an unexpected error while receiving from pipe\n")
 	}
-	if fuzzyEquals(delay, timer.elapsedMilliseconds(), 10) {
+	if FuzzyEquals(delay, timer.ElapsedMilliseconds(), 10) {
 		t.Fatalf("Latent pipe didn't express expected latency. Took %v milliseconds expected %v milliseconds",
-			timer.elapsedMilliseconds(), delay)
+			timer.ElapsedMilliseconds(), delay)
 	}
 	if &pkt != rcvd {
 		t.Fatalf("Didn't get expected packet from latent pipe. Got %v expected %v", rcvd, pkt)
@@ -48,14 +27,14 @@ func TestLatentPipeDelaysPackets(t *testing.T) {
 func TestLatentPipeWontDelayIfNoDelay(t *testing.T) {
 	pkt := Packet{}
 	pipe := NewLatentPipe(time.Millisecond * 0)
-	timer := startTimer()
+	timer := StartTimer()
 	pipe.Send(&pkt)
 	rcvd, err := pipe.Recv()
 	if err != nil {
 		t.Fatalf("Got an unexpected error while receiving from pipe\n")
 	}
-	if fuzzyEquals(0, timer.elapsedMilliseconds(), 10) {
-		t.Fatalf("Latent pipe expressed latency. Took %v milliseconds expected %v milliseconds", timer.elapsedMilliseconds(), 0)
+	if FuzzyEquals(0, timer.ElapsedMilliseconds(), 10) {
+		t.Fatalf("Latent pipe expressed latency. Took %v milliseconds expected %v milliseconds", timer.ElapsedMilliseconds(), 0)
 	}
 	if &pkt != rcvd {
 		t.Fatalf("Didn't get expected packet from latent pipe. Got %v expected %v", rcvd, pkt)
@@ -95,14 +74,14 @@ func TestRecvHangsIfNoPacket(t *testing.T) {
 		<-time.After(time.Millisecond * delay)
 		pipe.Send(&pkt)
 	}()
-	timer := startTimer()
+	timer := StartTimer()
 	rcvd, err := pipe.Recv()
 	if err != nil {
 		t.Fatalf("Got an unexpected error while receiving from pipe\n")
 	}
-	if fuzzyEquals(delay, timer.elapsedMilliseconds(), 10) {
+	if FuzzyEquals(delay, timer.ElapsedMilliseconds(), 10) {
 		t.Fatalf("Recv didn't block %v milliseconds expected %v milliseconds",
-			timer.elapsedMilliseconds(), delay)
+			timer.ElapsedMilliseconds(), delay)
 	}
 	if rcvd != &pkt {
 		t.Fatalf("Didn't get expected packet from latent pipe. Got %v expected %v", rcvd, pkt)

@@ -16,14 +16,14 @@ type basicPipe struct {
 /*
  * Send a packet over a basic pipe
  */
-func (bp basicPipe) Send(p *Packet) {
+func (bp *basicPipe) Send(p *Packet) {
 	bp.inputChan <- p
 }
 
 /*
  * Receive a packet from the basic pipe
  */
-func (bp basicPipe) Recv() (*Packet, error) {
+func (bp *basicPipe) Recv() (*Packet, error) {
 	pkt, ok := <-bp.outputChan
 	if !ok {
 		return nil, errors.New("Receiver is closed.")
@@ -34,7 +34,7 @@ func (bp basicPipe) Recv() (*Packet, error) {
 /*
  * Close the basic pipe
  */
-func (bp basicPipe) Close() {
+func (bp *basicPipe) Close() {
 	close(bp.inputChan)
 }
 
@@ -42,7 +42,7 @@ func (bp basicPipe) Close() {
  * Constructs a new basic pipe
  */
 func NewBasicPipe() Pipe {
-	bp := basicPipe{make(chan *Packet), make(chan *Packet)}
+	bp := &basicPipe{make(chan *Packet), make(chan *Packet)}
 
 	go func() {
 		var shutdown = false

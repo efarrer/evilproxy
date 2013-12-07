@@ -2,7 +2,6 @@ package evil_proxy
 
 import (
 	"container/list"
-	"errors"
 	"time"
 )
 
@@ -10,9 +9,9 @@ import (
  * A latentPipe is a pipe that simulates latency
  */
 type latentPipe struct {
-	inputChan  chan *latentPacket
-	outputChan chan *Packet
-	latency    time.Duration
+	inputChan chan *latentPacket
+	basePipe  Pipe
+	latency   time.Duration
 }
 
 /*
@@ -26,33 +25,29 @@ type latentPacket struct {
 /*
  * Send a packet over a latent pipe
  */
-func (lp latentPipe) Send(p *Packet) {
+func (lp *latentPipe) Send(p *Packet) {
 	lp.inputChan <- &latentPacket{p, time.Now().Add(lp.latency)}
 }
 
 /*
  * Receive a packet from the latent pipe
  */
-func (lp latentPipe) Recv() (*Packet, error) {
-	pkt, ok := <-lp.outputChan
-	if !ok {
-		return nil, errors.New("Receiver is closed.")
-	}
-	return pkt, nil
+func (lp *latentPipe) Recv() (*Packet, error) {
+	return lp.basePipe.Recv()
 }
 
 /*
  * Close the latent pipe
  */
-func (lp latentPipe) Close() {
+func (lp *latentPipe) Close() {
 	close(lp.inputChan)
 }
 
 /*
  * Constructs a new latent pipe, with the given latency
  */
-func NewLatentPipe(latency time.Duration) Pipe {
-	lp := latentPipe{make(chan *latentPacket), make(chan *Packet), latency}
+func NewLatentPipe(p Pipe, latency time.Duration) Pipe {
+	lp := &latentPipe{make(chan *latentPacket), p, latency}
 
 	go func() {
 		var shutdown = false
@@ -70,18 +65,13 @@ func NewLatentPipe(latency time.Duration) Pipe {
 		arrived := list.New()
 		var arrived_head *Packet = nil
 
-		// Holds either lp.outputChan or nil
-		// if outputChan is nil then it will never be selected
-		// Should be set if arrived_head is set and nil if arrived_head is nil
-		var outputChan chan *Packet = nil
-
 		for {
 			// If we've been shutdown and the arrived queue is empty then we can
-			// close the outputChan and exit
+			// close the basePipe and exit
 			if shutdown &&
 				arrived_head == nil && arrived.Len() == 0 &&
 				intransit_head == nil && intransit.Len() == 0 {
-				close(lp.outputChan)
+				lp.basePipe.Close()
 				return
 			}
 
@@ -105,13 +95,8 @@ func NewLatentPipe(latency time.Duration) Pipe {
 
 			// The head packet is ready to deliver
 			case <-timer:
-				// Push this packet onto the arrived list
-				if arrived.Len() == 0 {
-					arrived_head = intransit_head.packet
-					outputChan = lp.outputChan
-				} else {
-					arrived.PushBack(intransit_head.packet)
-				}
+				// Push this packet to the base pipe
+				lp.basePipe.Send(intransit_head.packet)
 
 				// Since we no longer have any packets in transit disable the
 				// timer
@@ -123,17 +108,6 @@ func NewLatentPipe(latency time.Duration) Pipe {
 					intransit.Remove(elm)
 					intransit_head = elm.Value.(*latentPacket)
 					restartTimer(intransit_head)
-				}
-
-			case outputChan <- arrived_head:
-				if 0 == arrived.Len() {
-					arrived_head = nil
-					outputChan = nil
-				} else {
-					elm := arrived.Front()
-					arrived.Remove(elm)
-					arrived_head = elm.Value.(*Packet)
-					outputChan = lp.outputChan
 				}
 
 			}

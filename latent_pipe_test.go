@@ -6,13 +6,13 @@ import (
 )
 
 func TestPipeBehaviorForLatentPipe(t *testing.T) {
-	PerformPipeTests(func() Pipe { return NewLatentPipe(time.Millisecond * 0) }, t)
+	PerformPipeTests(func() Pipe { return NewLatentPipe(NewBasicPipe(), time.Millisecond*0) }, t)
 }
 
 func TestLatentPipeDelaysPackets(t *testing.T) {
 	const delay = 100
 	pkt := Packet{}
-	pipe := NewLatentPipe(time.Millisecond * delay)
+	pipe := NewLatentPipe(NewBasicPipe(), time.Millisecond*delay)
 	timer := StartTimer()
 	pipe.Send(&pkt)
 	rcvd, err := pipe.Recv()
@@ -30,7 +30,7 @@ func TestLatentPipeDelaysPackets(t *testing.T) {
 
 func TestLatentPipeWontDelayIfNoDelay(t *testing.T) {
 	pkt := Packet{}
-	pipe := NewLatentPipe(time.Millisecond * 0)
+	pipe := NewLatentPipe(NewBasicPipe(), time.Millisecond*0)
 	timer := StartTimer()
 	pipe.Send(&pkt)
 	rcvd, err := pipe.Recv()

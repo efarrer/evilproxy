@@ -48,7 +48,7 @@ func testRecvHangsIfNoPacket(pipeGenerator func() Pipe, t *testing.T) {
 			timer.ElapsedMilliseconds(), delay)
 	}
 	if rcvd != &pkt {
-		t.Fatalf("Didn't get expected packet from latent pipe. Got %v expected %v", rcvd, pkt)
+		t.Fatalf("Didn't get expected packet from pipe. Got %v expected %v", rcvd, pkt)
 	}
 }
 

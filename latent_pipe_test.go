@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestPipeBehavior(t *testing.T) {
+func TestPipeBehaviorForLatentPipe(t *testing.T) {
 	PerformPipeTests(func() Pipe { return NewLatentPipe(time.Millisecond * 0) }, t)
 }
 

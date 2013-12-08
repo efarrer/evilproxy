@@ -20,8 +20,8 @@ type Connection interface {
 	/*
 	 * Reads a 'Packet'.
 	 * Blocks if a 'Packet' is not immediately available.
-     * Returns error if the connection's peer is closed and all queued 'Packet's
-     * have been read.
+	 * Returns error if the connection's peer is closed and all queued 'Packet's
+	 * have been read.
 	 */
 	Read() (*Packet, error)
 }

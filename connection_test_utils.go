@@ -68,6 +68,17 @@ func testReadFromClosedPeerConnectionResultsInNilPacket(
 	}
 }
 
+func testClosingAClosedConnectionPanics(
+        connectionGenerator func() (Connection, Connection), t *testing.T) {
+	defer func() {
+		recover()
+	}()
+	c0, _ := connectionGenerator()
+	c0.Close()
+	c0.Close()
+    t.Fatalf("Expected panic on double close")
+}
+
 func PerformConnectionTests(
 	connectionGenerator func() (Connection, Connection), t *testing.T) {
 
@@ -75,4 +86,5 @@ func PerformConnectionTests(
 	testWriteingAfterCloseResultsInError(connectionGenerator, t)
 	testReadHangsIfNoPacket(connectionGenerator, t)
 	testReadFromClosedPeerConnectionResultsInNilPacket(connectionGenerator, t)
+	testClosingAClosedConnectionPanics(connectionGenerator, t)
 }

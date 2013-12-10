@@ -64,10 +64,21 @@ func testRecvFromClosedPipeResultsInNilPacket(pipeGenerator func() Pipe, t *test
 	}
 }
 
+func testClosingAClosedPipePanics(pipeGenerator func() Pipe, t *testing.T) {
+	defer func() {
+		recover()
+	}()
+	pipe := pipeGenerator()
+	pipe.Close()
+	pipe.Close()
+    t.Fatalf("Expected panic on double close")
+}
+
 func PerformPipeTests(pipeGenerator func() Pipe, t *testing.T) {
 
 	testClosingAfterSendingStillDeliversPacket(pipeGenerator, t)
 	testSendingAfterCloseResultsInError(pipeGenerator, t)
 	testRecvHangsIfNoPacket(pipeGenerator, t)
 	testRecvFromClosedPipeResultsInNilPacket(pipeGenerator, t)
+	testClosingAClosedPipePanics(pipeGenerator, t)
 }

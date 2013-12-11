@@ -24,8 +24,11 @@ func TestFuzzyEqualsDoesntMatchFarValues(t *testing.T) {
 }
 
 func TestElapsedMillisecondsReportsElapsedTime(t *testing.T) {
-	const maxdelay = time.Millisecond * 300
+	const maxdelay = time.Millisecond * 1000
 	duration := StartTimer().ElapsedMilliseconds()
+	if duration < 0 {
+		t.Fatalf("Expected a possitive time change. Got %v\n", duration)
+	}
 	if !FuzzyEquals(0, duration, maxdelay) {
 		t.Fatalf("Expected a small time had elapsed %v\n", duration)
 	}

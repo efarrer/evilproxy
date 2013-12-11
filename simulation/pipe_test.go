@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+/*
+ * Note none of these tests will be automatically run
+ * Implementors of the Pipe interface should call PerformPipeTests from their
+ * unit tests to ensure their implementation is compliant.
+ */
+
 func testClosingAfterSendingStillDeliversPacket(pipeGenerator func() Pipe, t *testing.T) {
 	pkt := Packet{}
 	pipe := pipeGenerator()

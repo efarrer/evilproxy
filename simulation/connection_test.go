@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+/*
+ * Note none of these tests will be automatically run
+ * Implementors of the connection interface should call PerformConnectionTests
+ * from their unit tests to ensure their implementation is compliant.
+ */
+
 func testClosingAfterWritingStillDeliversPacket(
 	connectionGenerator func() (Connection, Connection), t *testing.T) {
 	pkt := Packet{}

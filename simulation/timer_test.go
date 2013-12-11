@@ -1,4 +1,4 @@
-package evil_proxy
+package simulation
 
 import (
 	"testing"

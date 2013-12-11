@@ -1,4 +1,4 @@
-package evil_proxy
+package simulation
 
 type Sender interface {
 	Send(*Packet)

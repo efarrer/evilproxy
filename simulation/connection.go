@@ -1,4 +1,4 @@
-package evil_proxy
+package simulation
 
 /*
  * A pipe is a thread-safe, bidirectional communication channel for

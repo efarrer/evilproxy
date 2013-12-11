@@ -19,6 +19,31 @@ func testClosingAfterSendingStillDeliversPacket(pipeGenerator func() Pipe, t *te
 	}
 }
 
+func testPipeDeliversPacketsInOrder(pipeGenerator func() Pipe, t *testing.T) {
+	pkt0 := &Packet{}
+	pkt1 := &Packet{}
+	pipe := pipeGenerator()
+	defer pipe.Close()
+	pipe.Send(pkt0)
+	pipe.Send(pkt1)
+	rcvd0, err := pipe.Recv()
+	if err != nil {
+		t.Fatalf("Got an unexpected error while receiving from pipe\n")
+	}
+	if pkt0 != rcvd0 {
+		t.Fatalf("Didn't get first packet from pipe. Got %v expected %v",
+			&rcvd0, &pkt0)
+	}
+	rcvd1, err := pipe.Recv()
+	if err != nil {
+		t.Fatalf("Got an unexpected error while receiving from pipe\n")
+	}
+	if pkt1 != rcvd1 {
+		t.Fatalf("Didn't get second packet from pipe. Got %v expected %v",
+			&rcvd1, &pkt1)
+	}
+}
+
 func testSendingAfterCloseResultsInError(pipeGenerator func() Pipe, t *testing.T) {
 	defer func() {
 		recover()
@@ -71,12 +96,13 @@ func testClosingAClosedPipePanics(pipeGenerator func() Pipe, t *testing.T) {
 	pipe := pipeGenerator()
 	pipe.Close()
 	pipe.Close()
-    t.Fatalf("Expected panic on double close")
+	t.Fatalf("Expected panic on double close")
 }
 
 func PerformPipeTests(pipeGenerator func() Pipe, t *testing.T) {
 
 	testClosingAfterSendingStillDeliversPacket(pipeGenerator, t)
+	testPipeDeliversPacketsInOrder(pipeGenerator, t)
 	testSendingAfterCloseResultsInError(pipeGenerator, t)
 	testRecvHangsIfNoPacket(pipeGenerator, t)
 	testRecvFromClosedPipeResultsInNilPacket(pipeGenerator, t)

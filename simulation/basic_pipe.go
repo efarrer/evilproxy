@@ -77,7 +77,7 @@ func NewBasicPipe() Pipe {
 				}
 
 				// Push this packet onto the arrived list
-				if arrived.Len() == 0 {
+				if arrived_head == nil {
 					arrived_head = input
 					outputChan = bp.outputChan
 				} else {

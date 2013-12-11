@@ -86,7 +86,7 @@ func NewLatentPipe(p Pipe, latency time.Duration) Pipe {
 				}
 
 				// If this is the first packet then start the timer
-				if nil == intransit.Front() {
+				if nil == intransit_head {
 					intransit_head = input
 					restartTimer(input)
 				} else { // Push this packet on the end of the intransit list

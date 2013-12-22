@@ -7,7 +7,6 @@ cd simulation;
 # Code formatting
 if [ "" != "$(go fmt)" ]; then
     echo "Code is not formatted correctly. Please correct and commit"
-    exit 1
 fi
 
 # Code vetting

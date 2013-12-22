@@ -1,17 +1,21 @@
 package simulation
 
+import (
+	"io"
+)
+
 type basicConnection struct {
 	send  Sender
 	recv  Receiver
-	close Closer
+	close io.Closer
 }
 
-func (c *basicConnection) Write(p *Packet) {
-	c.send.Send(p)
+func (c *basicConnection) Write(p *Packet) error {
+	return c.send.Send(p)
 }
 
-func (c *basicConnection) Close() {
-	c.close.Close()
+func (c *basicConnection) Close() error {
+	return c.close.Close()
 }
 
 func (c *basicConnection) Read() (*Packet, error) {

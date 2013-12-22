@@ -1,15 +1,15 @@
 package simulation
 
+import (
+	"io"
+)
+
 type Sender interface {
-	Send(*Packet)
+	Send(*Packet) error
 }
 
 type Receiver interface {
 	Recv() (*Packet, error)
-}
-
-type Closer interface {
-	Close()
 }
 
 /*
@@ -20,14 +20,13 @@ type Closer interface {
 type Pipe interface {
 	/*
 	 * Queue the 'Packet' for sending.
-	 * Panics if the pipe is closed.
 	 */
 	Sender
 
 	/*
 	 * Closes the pipe.
 	 */
-	Closer
+	io.Closer
 
 	/*
 	 * Receives a 'Packet'.

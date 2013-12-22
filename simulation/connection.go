@@ -1,21 +1,24 @@
 package simulation
 
+import (
+	"io"
+)
+
 /*
- * A pipe is a thread-safe, bidirectional communication channel for
+ * A connection is a thread-safe, bidirectional communication channel for
  * transmitting data. Packet's written with 'Write' will be available via a
  * peer's 'Read' method and visa-versa.
  */
 type Connection interface {
 	/*
 	 * Queue the 'Packet' for writing.
-	 * Panics if the connection is closed.
 	 */
-	Write(*Packet)
+	Write(*Packet) error
 
 	/*
 	 * Closes the connection.
 	 */
-	Close()
+	io.Closer
 
 	/*
 	 * Reads a 'Packet'.

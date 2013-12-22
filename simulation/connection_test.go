@@ -15,12 +15,12 @@ func testClosingAfterWritingStillDeliversPacket(
 	connectionGenerator func() (Connection, Connection), t *testing.T) {
 	pkt := Packet{}
 	c0, c1 := connectionGenerator()
-	c0.Write(&pkt)
-	c0.Close()
+	err := c0.Write(&pkt)
+	UnexpectedError(err, "writing", t)
+	err = c0.Close()
+	UnexpectedError(err, "closing", t)
 	read, err := c1.Read()
-	if err != nil {
-		t.Fatalf("Got an unexpected error while reading from connection\n")
-	}
+	UnexpectedError(err, "reading", t)
 	if &pkt != read {
 		t.Fatalf("Didn't get expected packet from connection. Got %v expected %v", read, pkt)
 	}
@@ -33,20 +33,18 @@ func testConnectionDeliversPacketsInOrder(
 	c0, c1 := connectionGenerator()
 	defer c0.Close()
 	defer c1.Close()
-	c0.Write(pkt0)
-	c0.Write(pkt1)
+	err := c0.Write(pkt0)
+	UnexpectedError(err, "writing", t)
+	err = c0.Write(pkt1)
+	UnexpectedError(err, "writing", t)
 	rcvd0, err := c1.Read()
-	if err != nil {
-		t.Fatalf("Got an unexpected error while receiving from connection\n")
-	}
+	UnexpectedError(err, "reading", t)
 	if pkt0 != rcvd0 {
 		t.Fatalf("Didn't get first packet from connection. Got %v expected %v",
 			&rcvd0, &pkt0)
 	}
 	rcvd1, err := c1.Read()
-	if err != nil {
-		t.Fatalf("Got an unexpected error while receiving from connection\n")
-	}
+	UnexpectedError(err, "reading", t)
 	if pkt1 != rcvd1 {
 		t.Fatalf("Didn't get second packet from connection. Got %v expected %v",
 			&rcvd1, &pkt1)
@@ -55,14 +53,14 @@ func testConnectionDeliversPacketsInOrder(
 
 func testWriteingAfterCloseResultsInError(
 	connectionGenerator func() (Connection, Connection), t *testing.T) {
-	defer func() {
-		recover()
-	}()
 	pkt := Packet{}
 	c0, _ := connectionGenerator()
-	c0.Close()
-	c0.Write(&pkt)
-	t.Fatalf("Expecting a panic for writing over closed connection\n")
+	err := c0.Close()
+	UnexpectedError(err, "closing", t)
+	err = c0.Write(&pkt)
+	if err == nil {
+		t.Fatalf("Expecting error for writing over a closed connection\n")
+	}
 }
 
 func testReadHangsIfNoPacket(
@@ -76,9 +74,7 @@ func testReadHangsIfNoPacket(
 	}()
 	timer := StartTimer()
 	read, err := c1.Read()
-	if err != nil {
-		t.Fatalf("Got an unexpected error while reading from connection\n")
-	}
+	UnexpectedError(err, "reading", t)
 	if FuzzyEquals(delay, timer.ElapsedMilliseconds(), 10) {
 		t.Fatalf("Read didn't block %v milliseconds expected %v milliseconds",
 			timer.ElapsedMilliseconds(), delay)
@@ -88,28 +84,28 @@ func testReadHangsIfNoPacket(
 	}
 }
 
-func testReadFromClosedPeerConnectionResultsInNilPacket(
+func testReadFromClosedPeerConnectionResultsInNilPacketAndError(
 	connectionGenerator func() (Connection, Connection), t *testing.T) {
 	c0, c1 := connectionGenerator()
 	c0.Close()
 	read, err := c1.Read()
-	if err == nil {
-		t.Fatalf("Expecting an error reading from closed connection but got none.\n")
-	}
 	if read != nil {
 		t.Fatalf("Got a packet, but expected nil Got %v expected nil", read)
 	}
+	if err == nil {
+		t.Fatalf("Didn't get expected error when Read'ing from closed connection")
+	}
 }
 
-func testClosingAClosedConnectionPanics(
+func testClosingAClosedConnectionFails(
 	connectionGenerator func() (Connection, Connection), t *testing.T) {
-	defer func() {
-		recover()
-	}()
 	c0, _ := connectionGenerator()
-	c0.Close()
-	c0.Close()
-	t.Fatalf("Expected panic on double close")
+	err := c0.Close()
+	UnexpectedError(err, "closing", t)
+	err = c0.Close()
+	if err == nil {
+		t.Fatalf("Expected error on double close")
+	}
 }
 
 func PerformConnectionTests(
@@ -119,6 +115,6 @@ func PerformConnectionTests(
 	testConnectionDeliversPacketsInOrder(connectionGenerator, t)
 	testWriteingAfterCloseResultsInError(connectionGenerator, t)
 	testReadHangsIfNoPacket(connectionGenerator, t)
-	testReadFromClosedPeerConnectionResultsInNilPacket(connectionGenerator, t)
-	testClosingAClosedConnectionPanics(connectionGenerator, t)
+	testReadFromClosedPeerConnectionResultsInNilPacketAndError(connectionGenerator, t)
+	testClosingAClosedConnectionFails(connectionGenerator, t)
 }

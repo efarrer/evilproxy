@@ -11,13 +11,18 @@ import (
 type basicPipe struct {
 	inputChan  chan *Packet
 	outputChan chan *Packet
+	closed     bool
 }
 
 /*
  * Send a packet over a basic pipe
  */
-func (bp *basicPipe) Send(p *Packet) {
+func (bp *basicPipe) Send(p *Packet) error {
+	if bp.closed {
+		return errors.New("Sending on a closed basic pipe.\n")
+	}
 	bp.inputChan <- p
+	return nil
 }
 
 /*
@@ -34,15 +39,20 @@ func (bp *basicPipe) Recv() (*Packet, error) {
 /*
  * Close the basic pipe
  */
-func (bp *basicPipe) Close() {
+func (bp *basicPipe) Close() error {
+	if bp.closed {
+		return errors.New("Closing a closed basic pipe.\n")
+	}
 	close(bp.inputChan)
+	bp.closed = true
+	return nil
 }
 
 /*
  * Constructs a new basic pipe
  */
 func NewBasicPipe() Pipe {
-	bp := &basicPipe{make(chan *Packet), make(chan *Packet)}
+	bp := &basicPipe{make(chan *Packet), make(chan *Packet), false}
 
 	go func() {
 		var shutdown = false

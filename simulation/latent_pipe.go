@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"container/list"
+	"errors"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type latentPipe struct {
 	inputChan chan *latentPacket
 	basePipe  Pipe
 	latency   time.Duration
+	closed    bool
 }
 
 /*
@@ -25,8 +27,12 @@ type latentPacket struct {
 /*
  * Send a packet over a latent pipe
  */
-func (lp *latentPipe) Send(p *Packet) {
+func (lp *latentPipe) Send(p *Packet) error {
+	if lp.closed {
+		return errors.New("Sending on a closed latent pipe.\n")
+	}
 	lp.inputChan <- &latentPacket{p, time.Now().Add(lp.latency)}
+	return nil
 }
 
 /*
@@ -39,15 +45,20 @@ func (lp *latentPipe) Recv() (*Packet, error) {
 /*
  * Close the latent pipe
  */
-func (lp *latentPipe) Close() {
+func (lp *latentPipe) Close() error {
+	if lp.closed {
+		return errors.New("Closing a closed latent pipe.\n")
+	}
 	close(lp.inputChan)
+	lp.closed = true
+	return nil
 }
 
 /*
  * Constructs a new latent pipe, with the given latency
  */
 func NewLatentPipe(p Pipe, latency time.Duration) Pipe {
-	lp := &latentPipe{make(chan *latentPacket), p, latency}
+	lp := &latentPipe{make(chan *latentPacket), p, latency, false}
 
 	go func() {
 		var shutdown = false

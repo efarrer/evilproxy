@@ -2,22 +2,42 @@
 
 cd $(dirname "$0")
 
-cd simulation;
+function testMain
+{
+    # Code formatting
+    if [ "" != "$(go fmt)" ]; then
+        echo "Code is not formatted correctly. Please correct and commit"
+    fi
 
-# Code formatting
-if [ "" != "$(go fmt)" ]; then
-    echo "Code is not formatted correctly. Please correct and commit"
-fi
+    # Code vetting
+    go vet
 
-# Code vetting
-go vet
+}
 
-# Race detection
-go test -race
+function testLibrary
+{
+    library="$1"
 
-# Code coverage
-go test -coverprofile cover.out > /dev/null
-if go tool cover -func=cover.out | grep -v "100.0%"; then
-    echo "Unit test code coverage failed"
-    exit 1
-fi
+    pushd "$library"
+    echo "Test $library"
+
+    testMain
+
+    # Race detection
+    go test -race
+
+    # Code coverage
+    go test -coverprofile cover.out > /dev/null
+    if [ -e cover.out ]; then
+        if go tool cover -func=cover.out | grep -v "100.0%"; then
+            echo "Unit test code coverage failed"
+            exit 1
+        fi
+    fi
+
+    popd
+}
+
+testLibrary simulation
+echo "Test main"
+testMain

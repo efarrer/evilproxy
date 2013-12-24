@@ -33,13 +33,14 @@ func main() {
 				log.Printf("Unable to connect to \"%s\". %v\n", client, err)
 			}
 
-            rule := ""
+			rule := ""
 			cconn, sconn, err := parser.ConstructConnections(rule)
 			if err != nil {
 				log.Printf("Error (%v) unable to parse rule. \"%v\"\n", rule, err)
 			}
 
-			io.Copy(csock, connection.ConnectionReaderAdaptor(cconn))
+			go io.Copy(csock, connection.ConnectionReaderAdaptor(cconn))
+			io.Copy(ssock, connection.ConnectionReaderAdaptor(sconn))
 
 			// TODO start streaming packets between the connections
 		}(*client)

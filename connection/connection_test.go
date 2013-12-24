@@ -203,3 +203,46 @@ func TestConnectionReaderAdaptorCanReadMultipleTimesFromLargePacket(t *testing.T
 		t.Fatalf("Expected read error, but no error was returned\n")
 	}
 }
+
+type packetWriter struct {
+	err       error
+	lastWrote *packet.Packet
+}
+
+func (pw *packetWriter) Write(p *packet.Packet) error {
+	pw.lastWrote = p
+	return pw.err
+}
+
+func TestConnectionWriterAdaptorReturnsErrorOnError(t *testing.T) {
+	pktWriter := &packetWriter{errors.New("Some error"), nil}
+	writer := ConnectionWriterAdaptor(pktWriter)
+
+	buffer := make([]byte, 10)
+	n, err := writer.Write(buffer)
+	if n != 0 {
+		t.Fatalf("Expected write of 0 got %v\n", n)
+	}
+	if err == nil {
+		t.Fatalf("Expected write error, but no error was returned\n")
+	}
+}
+
+func TestConnectionWriterAdaptorWritesPacket(t *testing.T) {
+	const Size = 10
+	pktWriter := &packetWriter{nil, nil}
+	writer := ConnectionWriterAdaptor(pktWriter)
+
+	buffer := make([]byte, Size)
+	n, err := writer.Write(buffer)
+	if n != Size {
+		t.Fatalf("Expected write of %v got %v\n", Size, n)
+	}
+	if err != nil {
+		t.Fatalf("Got unexpected write error %v.\n", err)
+	}
+	size := len(pktWriter.lastWrote.Payload)
+	if size != Size {
+		t.Fatalf("Wrote packet was of unexpected size %v!=%v\n", size, Size)
+	}
+}

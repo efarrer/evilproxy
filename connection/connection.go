@@ -9,6 +9,10 @@ type PacketReader interface {
 	Read() (*packet.Packet, error)
 }
 
+type PacketWriter interface {
+	Write(*packet.Packet) error
+}
+
 /*
  * A connection is a thread-safe, bidirectional communication channel for
  * transmitting data. Packet's written with 'Write' will be available via a
@@ -18,7 +22,7 @@ type Connection interface {
 	/*
 	 * Queue the 'Packet' for writing.
 	 */
-	Write(*packet.Packet) error
+	PacketWriter
 
 	/*
 	 * Closes the connection.
@@ -59,4 +63,24 @@ func (ra *readerAdaptor) Read(p []byte) (int, error) {
 
 func ConnectionReaderAdaptor(pktReader PacketReader) io.Reader {
 	return &readerAdaptor{nil, pktReader}
+}
+
+type writerAdaptor struct {
+	pktWritter PacketWriter
+}
+
+func (wa *writerAdaptor) Write(p []byte) (int, error) {
+	pkt := &packet.Packet{}
+	pkt.Payload = make([]byte, len(p))
+
+	copy(pkt.Payload, p)
+	err := wa.pktWritter.Write(pkt)
+	if err != nil {
+		return 0, err
+	}
+	return len(p), nil
+}
+
+func ConnectionWriterAdaptor(pktWriter PacketWriter) io.Writer {
+	return &writerAdaptor{pktWriter}
 }

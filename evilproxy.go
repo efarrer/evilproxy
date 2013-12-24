@@ -40,7 +40,10 @@ func main() {
 			}
 
 			go io.Copy(csock, connection.ConnectionReaderAdaptor(cconn))
-			io.Copy(ssock, connection.ConnectionReaderAdaptor(sconn))
+			go io.Copy(connection.ConnectionWriterAdaptor(cconn), csock)
+
+			go io.Copy(ssock, connection.ConnectionReaderAdaptor(sconn))
+			io.Copy(connection.ConnectionWriterAdaptor(sconn), ssock)
 
 			// TODO start streaming packets between the connections
 		}(*client)

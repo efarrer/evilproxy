@@ -38,6 +38,10 @@ function testLibrary
     popd
 }
 
-testLibrary simulation
+testLibrary testing_utils
+testLibrary connection
+testLibrary packet
+testLibrary pipe
+testLibrary parser
 echo "Test main"
 testMain

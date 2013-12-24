@@ -1,6 +1,7 @@
-package simulation
+package connection
 
 import (
+	"evilproxy/packet"
 	"io"
 )
 
@@ -13,7 +14,7 @@ type Connection interface {
 	/*
 	 * Queue the 'Packet' for writing.
 	 */
-	Write(*Packet) error
+	Write(*packet.Packet) error
 
 	/*
 	 * Closes the connection.
@@ -26,5 +27,5 @@ type Connection interface {
 	 * Returns error if the connection's peer is closed and all queued 'Packet's
 	 * have been read.
 	 */
-	Read() (*Packet, error)
+	Read() (*packet.Packet, error)
 }

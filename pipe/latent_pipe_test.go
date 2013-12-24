@@ -1,6 +1,8 @@
-package simulation
+package pipe
 
 import (
+	"evilproxy/packet"
+	"evilproxy/testing_utils"
 	"testing"
 	"time"
 )
@@ -11,15 +13,15 @@ func TestPipeBehaviorForLatentPipe(t *testing.T) {
 
 func TestLatentPipeDelaysPackets(t *testing.T) {
 	const delay = 100
-	pkt := Packet{}
+	pkt := packet.Packet{}
 	pipe := NewLatentPipe(NewBasicPipe(), time.Millisecond*delay)
-	timer := StartTimer()
+	timer := testing_utils.StartTimer()
 	pipe.Send(&pkt)
 	rcvd, err := pipe.Recv()
 	if err != nil {
 		t.Fatalf("Got an unexpected error while receiving from pipe\n")
 	}
-	if FuzzyEquals(delay, timer.ElapsedMilliseconds(), 10) {
+	if testing_utils.FuzzyEquals(delay, timer.ElapsedMilliseconds(), 10) {
 		t.Fatalf("Latent pipe didn't express expected latency. Took %v milliseconds expected %v milliseconds",
 			timer.ElapsedMilliseconds(), delay)
 	}
@@ -29,15 +31,15 @@ func TestLatentPipeDelaysPackets(t *testing.T) {
 }
 
 func TestLatentPipeWontDelayIfNoDelay(t *testing.T) {
-	pkt := Packet{}
+	pkt := packet.Packet{}
 	pipe := NewLatentPipe(NewBasicPipe(), time.Millisecond*0)
-	timer := StartTimer()
+	timer := testing_utils.StartTimer()
 	pipe.Send(&pkt)
 	rcvd, err := pipe.Recv()
 	if err != nil {
 		t.Fatalf("Got an unexpected error while receiving from pipe\n")
 	}
-	if FuzzyEquals(0, timer.ElapsedMilliseconds(), 10) {
+	if testing_utils.FuzzyEquals(0, timer.ElapsedMilliseconds(), 10) {
 		t.Fatalf("Latent pipe expressed latency. Took %v milliseconds expected %v milliseconds", timer.ElapsedMilliseconds(), 0)
 	}
 	if &pkt != rcvd {

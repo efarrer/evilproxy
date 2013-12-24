@@ -1,11 +1,12 @@
-package simulation
+package connection
 
 import (
+	"evilproxy/pipe"
 	"testing"
 )
 
 func TestConnectionBehaviorForBasicConnection(t *testing.T) {
 	PerformConnectionTests(func() (Connection, Connection) {
-		return NewBasicConnections(NewBasicPipe(), NewBasicPipe())
+		return NewBasicConnections(pipe.NewBasicPipe(), pipe.NewBasicPipe())
 	}, t)
 }

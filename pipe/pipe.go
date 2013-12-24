@@ -1,15 +1,16 @@
-package simulation
+package pipe
 
 import (
+	"evilproxy/packet"
 	"io"
 )
 
 type Sender interface {
-	Send(*Packet) error
+	Send(*packet.Packet) error
 }
 
 type Receiver interface {
-	Recv() (*Packet, error)
+	Recv() (*packet.Packet, error)
 }
 
 /*

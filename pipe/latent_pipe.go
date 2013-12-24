@@ -1,8 +1,9 @@
-package simulation
+package pipe
 
 import (
 	"container/list"
 	"errors"
+	"evilproxy/packet"
 	"time"
 )
 
@@ -20,14 +21,14 @@ type latentPipe struct {
  * A container for packets that contain the arrival time
  */
 type latentPacket struct {
-	packet      *Packet
+	packet      *packet.Packet
 	arrivalTime time.Time
 }
 
 /*
  * Send a packet over a latent pipe
  */
-func (lp *latentPipe) Send(p *Packet) error {
+func (lp *latentPipe) Send(p *packet.Packet) error {
 	if lp.closed {
 		return errors.New("Sending on a closed latent pipe.\n")
 	}
@@ -38,7 +39,7 @@ func (lp *latentPipe) Send(p *Packet) error {
 /*
  * Receive a packet from the latent pipe
  */
-func (lp *latentPipe) Recv() (*Packet, error) {
+func (lp *latentPipe) Recv() (*packet.Packet, error) {
 	return lp.basePipe.Recv()
 }
 
@@ -74,7 +75,7 @@ func NewLatentPipe(p Pipe, latency time.Duration) Pipe {
 
 		// The packets that have arrived and are ready to be recv'd
 		arrived := list.New()
-		var arrived_head *Packet = nil
+		var arrived_head *packet.Packet = nil
 
 		for {
 			// If we've been shutdown and the arrived queue is empty then we can

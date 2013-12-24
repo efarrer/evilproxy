@@ -45,7 +45,10 @@ func main() {
 			go io.Copy(ssock, connection.ConnectionReaderAdaptor(sconn))
 			io.Copy(connection.ConnectionWriterAdaptor(sconn), ssock)
 
-			// TODO start streaming packets between the connections
+            // TODO Make sure all socket/connections get closed
+            // TODO Add a debug option that makes sure all all goroutines are
+            // shutdown runtime.NumGoroutine
+
 		}(*client)
 	}
 }

@@ -2,7 +2,7 @@
 
 cd $(dirname "$0")
 
-function testMain
+function testCommon
 {
     # Code formatting
     if [ "" != "$(go fmt)" ]; then
@@ -14,6 +14,13 @@ function testMain
 
 }
 
+function testMain
+{
+    testCommon
+
+    go build
+}
+
 function testLibrary
 {
     library="$1"
@@ -21,7 +28,7 @@ function testLibrary
     pushd "$library"
     echo "Test $library"
 
-    testMain
+    testCommon
 
     # Race detection
     go test -race

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"evilproxy/simulation"
+	"evilproxy/connection"
+	"evilproxy/parser"
 	"flag"
-	"fmt"
+	"io"
 	"log"
 	"net"
 	"time"
@@ -32,7 +33,13 @@ func main() {
 				log.Printf("Unable to connect to \"%s\". %v\n", client, err)
 			}
 
-			cconn, sconn = simulation.ConstructConnections("")
+            rule := ""
+			cconn, sconn, err := parser.ConstructConnections(rule)
+			if err != nil {
+				log.Printf("Error (%v) unable to parse rule. \"%v\"\n", rule, err)
+			}
+
+			io.Copy(csock, connection.ConnectionReaderAdaptor(cconn))
 
 			// TODO start streaming packets between the connections
 		}(*client)

@@ -1,6 +1,7 @@
 package connection
 
 import (
+	"errors"
 	"evilproxy/packet"
 	"evilproxy/testing_utils"
 	"testing"
@@ -119,4 +120,86 @@ func PerformConnectionTests(
 	testReadHangsIfNoPacket(connectionGenerator, t)
 	testReadFromClosedPeerConnectionResultsInNilPacketAndError(connectionGenerator, t)
 	testClosingAClosedConnectionFails(connectionGenerator, t)
+}
+
+type packetReader struct {
+	err    error
+	packet *packet.Packet
+}
+
+func (p *packetReader) Read() (*packet.Packet, error) {
+	if p.packet != nil {
+		pkt := p.packet
+		p.packet = nil
+		return pkt, nil
+	}
+	return nil, p.err
+}
+
+func TestConnectionReaderAdaptorReturnsErrorOnError(t *testing.T) {
+	pktReader := &packetReader{errors.New("Some error"), nil}
+
+	reader := ConnectionReaderAdaptor(pktReader)
+
+	buffer := make([]byte, 10)
+	n, err := reader.Read(buffer)
+	if n != 0 {
+		t.Fatalf("Expected read of 0 got %v\n", n)
+	}
+	if err == nil {
+		t.Fatalf("Expected read error, but no error was returned\n")
+	}
+}
+
+func TestConnectionReaderAdaptorReturnsDataFromPacket(t *testing.T) {
+	const DataSize = 10
+	pkt := &packet.Packet{}
+	pkt.Payload = make([]byte, DataSize)
+	pktReader := &packetReader{errors.New("Some error"), pkt}
+
+	buffer := make([]byte, DataSize)
+	reader := ConnectionReaderAdaptor(pktReader)
+
+	n, err := reader.Read(buffer)
+	if n != DataSize {
+		t.Fatalf("Expected read of %v got %v\n", DataSize, n)
+	}
+	if err != nil {
+		t.Fatalf("Got an unexpected error %v\n", err)
+	}
+	n, err = reader.Read(buffer)
+	if n != 0 {
+		t.Fatalf("Expected read of 0 got %v\n", n)
+	}
+	if err == nil {
+		t.Fatalf("Expected read error, but no error was returned\n")
+	}
+}
+
+func TestConnectionReaderAdaptorCanReadMultipleTimesFromLargePacket(t *testing.T) {
+	const DataSize = 10
+	const PacketSizeMultiplier = 5
+	pkt := &packet.Packet{}
+	pkt.Payload = make([]byte, DataSize*PacketSizeMultiplier)
+	pktReader := &packetReader{errors.New("Some error"), pkt}
+
+	buffer := make([]byte, DataSize)
+	reader := ConnectionReaderAdaptor(pktReader)
+
+	for i := 0; i != PacketSizeMultiplier; i++ {
+		n, err := reader.Read(buffer)
+		if n != DataSize {
+			t.Fatalf("Expected read of %v got %v\n", DataSize, n)
+		}
+		if err != nil {
+			t.Fatalf("Got an unexpected error %v\n", err)
+		}
+	}
+	n, err := reader.Read(buffer)
+	if n != 0 {
+		t.Fatalf("Expected read of 0 got %v\n", n)
+	}
+	if err == nil {
+		t.Fatalf("Expected read error, but no error was returned\n")
+	}
 }

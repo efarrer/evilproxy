@@ -7,27 +7,35 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync"
 	"time"
 )
 
 func main() {
 	var client = flag.String("client", ":80", "Client connection address")
 	var server = flag.String("server", ":8080", "Server connection address")
+	var connections = flag.Int("connections", -1, "Number of connections to allow")
 	flag.Parse()
+
+	var outstandingConns sync.WaitGroup
 
 	serv, err := net.Listen("tcp", *server)
 	if err != nil {
 		log.Fatalf("Unable start server on \"%s\". %v\n", *server, err)
 	}
 
-	for {
+	for i := 0; i != *connections; i++ {
+
 		ssock, err := serv.Accept()
 		if err != nil {
 			log.Fatalf("Unable accept client connection. %v\n", err)
 		}
 
+		outstandingConns.Add(1)
 		// Complete the connection
 		go func(client string) {
+			defer outstandingConns.Done()
+
 			csock, err := net.DialTimeout("tcp", client, time.Second*3)
 			if err != nil {
 				log.Printf("Unable to connect to \"%s\". %v\n", client, err)
@@ -50,5 +58,7 @@ func main() {
             // shutdown runtime.NumGoroutine
 
 		}(*client)
+
+		outstandingConns.Wait()
 	}
 }

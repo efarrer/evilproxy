@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	var client = flag.String("connect", ":80", "Client connection address")
+	var client = flag.String("client", ":80", "Client connection address")
 	var server = flag.String("server", ":8080", "Server connection address")
 	flag.Parse()
 

@@ -53,10 +53,12 @@ func main() {
 			go io.Copy(ssock, connection.ConnectionReaderAdaptor(sconn))
 			io.Copy(connection.ConnectionWriterAdaptor(sconn), ssock)
 
-            // TODO Make sure all socket/connections get closed
-            // TODO Add a debug option that makes sure all all goroutines are
-            // shutdown runtime.NumGoroutine
+			defer ssock.Close()
+			defer csock.Close()
+			defer cconn.Close()
+			defer sconn.Close()
 
+			// TODO Make sure all socket/connections get closed
 		}(*client)
 
 		outstandingConns.Wait()

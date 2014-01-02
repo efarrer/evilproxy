@@ -18,7 +18,7 @@ function testMain
 {
     testCommon
 
-    go build
+    go build -race
 }
 
 function testLibrary

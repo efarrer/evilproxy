@@ -45,6 +45,7 @@ function testLibrary
     popd
 }
 
+testLibrary debug
 testLibrary testing_utils
 testLibrary connection
 testLibrary packet

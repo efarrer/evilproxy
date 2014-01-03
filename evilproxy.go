@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"evilproxy/connection"
+	"evilproxy/debug"
 	"evilproxy/parser"
 	"flag"
 	"io"
 	"log"
 	"net"
+	"runtime/pprof"
 	"sync"
 	"time"
 )
@@ -15,6 +18,7 @@ func main() {
 	var client = flag.String("client", ":80", "Client connection address")
 	var server = flag.String("server", ":8080", "Server connection address")
 	var connections = flag.Int("connections", -1, "Number of connections to allow")
+	var debugEnabled = flag.Bool("debug", false, "Enable additional debug functionality")
 	flag.Parse()
 
 	var outstandingConns sync.WaitGroup
@@ -62,5 +66,13 @@ func main() {
 		}(*client)
 
 		outstandingConns.Wait()
+		if *debugEnabled {
+			time.Sleep(1 * time.Second)
+			buffer := &bytes.Buffer{}
+			pprof.Lookup("goroutine").WriteTo(buffer, 2)
+			if cnt, value := debug.OutstandingGoRoutines(buffer.String()); cnt != 1 {
+				log.Printf("%v\n\nOutstanding goroutines %v", value, cnt)
+			}
+		}
 	}
 }

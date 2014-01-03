@@ -2,6 +2,26 @@
 
 cd $(dirname "$0")
 
+START_PORT=8080
+END_PORT=8081
+
+function startServer
+{
+    nc -l localhost $END_PORT
+}
+
+function startEvilProxy
+{
+    ./evilproxy --server=:$START_PORT --client=:$END_PORT --connections=1 --debug
+}
+
+function startClient
+{
+    output="$1"
+    echo "$output" | nc localhost $START_PORT > /dev/null
+}
+
+
 function testCommon
 {
     # Code formatting
@@ -14,11 +34,23 @@ function testCommon
 
 }
 
+function ensureServerAndProxyShutdownWhenClientQuits
+{
+    echo "Ensure server and proxy shutdown when client quits."
+    startEvilProxy &
+    startServer &
+    sleep 0.5
+    startClient "Hi" &
+    wait
+}
+
 function testMain
 {
     testCommon
 
     go build -race
+
+    ensureServerAndProxyShutdownWhenClientQuits
 }
 
 function testLibrary

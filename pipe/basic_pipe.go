@@ -3,7 +3,8 @@ package pipe
 import (
 	"container/list"
 	"errors"
-	"evilproxy/packet"
+
+	"github.com/efarrer/evilproxy/packet"
 )
 
 /*

@@ -2,9 +2,6 @@ package main
 
 import (
 	"bytes"
-	"evilproxy/connection"
-	"evilproxy/debug"
-	"evilproxy/parser"
 	"flag"
 	"io"
 	"log"
@@ -12,6 +9,10 @@ import (
 	"runtime/pprof"
 	"sync"
 	"time"
+
+	"github.com/efarrer/evilproxy/connection"
+	"github.com/efarrer/evilproxy/debug"
+	"github.com/efarrer/evilproxy/parser"
 )
 
 func main() {

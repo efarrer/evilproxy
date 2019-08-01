@@ -1,8 +1,9 @@
 package pipe
 
 import (
-	"evilproxy/packet"
 	"io"
+
+	"github.com/efarrer/evilproxy/packet"
 )
 
 type Sender interface {

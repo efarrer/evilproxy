@@ -2,10 +2,11 @@ package connection
 
 import (
 	"errors"
-	"evilproxy/packet"
-	"evilproxy/testing_utils"
 	"testing"
 	"time"
+
+	"github.com/efarrer/evilproxy/packet"
+	"github.com/efarrer/evilproxy/testing_utils"
 )
 
 /*

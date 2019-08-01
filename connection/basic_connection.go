@@ -1,9 +1,10 @@
 package connection
 
 import (
-	"evilproxy/packet"
-	"evilproxy/pipe"
 	"io"
+
+	"github.com/efarrer/evilproxy/packet"
+	"github.com/efarrer/evilproxy/pipe"
 )
 
 type basicConnection struct {

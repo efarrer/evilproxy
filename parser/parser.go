@@ -2,9 +2,10 @@ package parser
 
 import (
 	"errors"
-	"evilproxy/connection"
-	"evilproxy/pipe"
 	"fmt"
+
+	"github.com/efarrer/evilproxy/connection"
+	"github.com/efarrer/evilproxy/pipe"
 )
 
 func ConstructConnections(rule string) (connection.Connection, connection.Connection, error) {

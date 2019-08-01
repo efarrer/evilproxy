@@ -1,8 +1,9 @@
 package connection
 
 import (
-	"evilproxy/pipe"
 	"testing"
+
+	"github.com/efarrer/evilproxy/pipe"
 )
 
 func TestConnectionBehaviorForBasicConnection(t *testing.T) {

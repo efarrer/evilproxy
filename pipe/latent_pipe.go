@@ -3,8 +3,9 @@ package pipe
 import (
 	"container/list"
 	"errors"
-	"evilproxy/packet"
 	"time"
+
+	"github.com/efarrer/evilproxy/packet"
 )
 
 /*
